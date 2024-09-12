@@ -1,0 +1,755 @@
+---
+title: "Companion_H24_5aDay"
+author: "Under Submission"
+date: "2024-09-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+
+```{r, message=FALSE}
+library(tidyverse)
+library(reshape2)
+library(sf)
+library(spdep)
+library(tmap)
+#library(OasisR)
+```
+
+## Analysis of census data (section 2.1)
+
+Import data at night time `pop0`, daytime `pop1` and evening `pop2` 
+
+```{r}
+pop_0 <- st_read( "data/population.gpkg",
+              layer="Population_0")
+pop_1 <- st_read("data/population.gpkg",
+                  layer="Population_1")
+pop_2 <- st_read("data/population.gpkg",
+                  layer="Population_2")
+```
+
+Create new colums : gender (2 groups) ; Age (3 groups); Educ (3 Groups) 
+
+```{r}
+pop_0 <- pop_0 %>% 
+  rowwise() %>% 
+  mutate(
+    men =  sum(across(starts_with('pop_1'))),
+    women = sum(across(starts_with('pop_2'))),
+         
+    age1 = sum(across(starts_with(c('pop_1_1', 'pop_2_1')))),
+    age2 = sum(across(starts_with(c('pop_1_2', 'pop_2_2')))),
+    age3 = sum(across(starts_with(c('pop_1_3', 'pop_2_3')))),
+    
+    educ1 = sum(across(ends_with('_1'))),
+    educ2 = sum(across(ends_with('_2'))),
+    educ3 = sum(across(ends_with('_3')))
+    )
+
+pop_1 <- pop_1 %>% 
+  rowwise() %>% 
+  mutate(
+    men =  sum(across(starts_with('pop_1'))),
+    women = sum(across(starts_with('pop_2'))),
+    
+    age1 = sum(across(starts_with(c('pop_1_1', 'pop_2_1')))),
+    age2 = sum(across(starts_with(c('pop_1_2', 'pop_2_2')))),
+    age3 = sum(across(starts_with(c('pop_1_3', 'pop_2_3')))),
+    
+    educ1 = sum(across(ends_with('_1'))),
+    educ2 = sum(across(ends_with('_2'))),
+    educ3 = sum(across(ends_with('_3')))
+  )
+
+pop_2 <- pop_2 %>% 
+  rowwise() %>% 
+  mutate(
+    men =  sum(across(starts_with('pop_1'))),
+    women = sum(across(starts_with('pop_2'))),
+    
+    age1 = sum(across(starts_with(c('pop_1_1', 'pop_2_1')))),
+    age2 = sum(across(starts_with(c('pop_1_2', 'pop_2_2')))),
+    age3 = sum(across(starts_with(c('pop_1_3', 'pop_2_3')))),
+    
+    educ1 = sum(across(ends_with('_1'))),
+    educ2 = sum(across(ends_with('_2'))),
+    educ3 = sum(across(ends_with('_3')))
+  )
+```
+
+### Duncan's index of segregation
+
+Duncan's segregation index is one-group form of dissimilarity index DI  and measures the unevenness of a group distribution compared to the rest of the population. It can be interpreted as the share of the group that would have to move to achieve an even distribution compared to the rest of the population. You should not include a column with total population, because this will be interpreted as a group.
+
+```{r, eval=F}
+dfpop_0 <- pop_0 %>% st_drop_geometry()
+
+pop_0_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_0[,2:19]))
+colnames(pop_0_Duncan_18categ)[1] <- "Duncan_pop_0"
+rownames(pop_0_Duncan_18categ) <- paste (colnames(dfpop_0[ , 2:19]))
+
+pop_0_Duncan_sex<- as.data.frame(ISDuncan(dfpop_0[,20:21]))
+colnames(pop_0_Duncan_sex)[1] <- "Duncan_pop_0"
+rownames(pop_0_Duncan_sex) <- paste (colnames(dfpop_0[ , 20:21]))
+
+pop_0_Duncan_age<- as.data.frame(ISDuncan(dfpop_0[,22:24]))
+colnames(pop_0_Duncan_age)[1] <- "Duncan_pop_0"
+rownames(pop_0_Duncan_age) <- paste (colnames(dfpop_0[ , 22:24]))
+
+pop_0_Duncan_educ<- as.data.frame(ISDuncan(dfpop_0[,25:27]))
+colnames(pop_0_Duncan_educ)[1] <- "Duncan_pop_0"
+rownames(pop_0_Duncan_educ) <- paste (colnames(dfpop_0[ , 25:27]))
+
+pop_0_all_Duncan <- bind_rows(pop_0_Duncan_18categ, pop_0_Duncan_sex, pop_0_Duncan_age, pop_0_Duncan_educ)
+
+dfpop_1 <- pop_1 %>% st_drop_geometry()
+
+pop_1_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_1[,2:19]))
+colnames(pop_1_Duncan_18categ)[1] <- "Duncan_pop_1"
+rownames(pop_1_Duncan_18categ) <- paste (colnames(dfpop_1[ , 2:19]))
+
+pop_1_Duncan_sex<- as.data.frame(ISDuncan(dfpop_1[,20:21]))
+colnames(pop_1_Duncan_sex)[1] <- "Duncan_pop_1"
+rownames(pop_1_Duncan_sex) <- paste (colnames(dfpop_1[ , 20:21]))
+
+pop_1_Duncan_age<- as.data.frame(ISDuncan(dfpop_1[,22:24]))
+colnames(pop_1_Duncan_age)[1] <- "Duncan_pop_1"
+rownames(pop_1_Duncan_age) <- paste (colnames(dfpop_1[ , 22:24]))
+
+pop_1_Duncan_educ<- as.data.frame(ISDuncan(dfpop_1[,25:27]))
+colnames(pop_1_Duncan_educ)[1] <- "Duncan_pop_1"
+rownames(pop_1_Duncan_educ) <- paste (colnames(dfpop_1[ , 25:27]))
+
+pop_1_all_Duncan <- bind_rows(pop_1_Duncan_18categ, pop_1_Duncan_sex, pop_1_Duncan_age, pop_1_Duncan_educ)
+
+dfpop_2 <- pop_2 %>% st_drop_geometry()
+
+pop_2_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_2[,2:19]))
+colnames(pop_2_Duncan_18categ)[1] <- "Duncan_pop_2"
+rownames(pop_2_Duncan_18categ) <- paste (colnames(dfpop_2[ , 2:19]))
+
+pop_2_Duncan_sex<- as.data.frame(ISDuncan(dfpop_2[,20:21]))
+colnames(pop_2_Duncan_sex)[1] <- "Duncan_pop_2"
+rownames(pop_2_Duncan_sex) <- paste (colnames(dfpop_2[ , 20:21]))
+
+pop_2_Duncan_age<- as.data.frame(ISDuncan(dfpop_2[,22:24]))
+colnames(pop_2_Duncan_age)[1] <- "Duncan_pop_2"
+rownames(pop_2_Duncan_age) <- paste (colnames(dfpop_2[ , 22:24]))
+
+pop_2_Duncan_educ<- as.data.frame(ISDuncan(dfpop_2[,25:27]))
+colnames(pop_2_Duncan_educ)[1] <- "Duncan_pop_2"
+rownames(pop_2_Duncan_educ) <- paste (colnames(dfpop_2[ , 25:27]))
+
+pop_2_all_Duncan <- bind_rows(pop_2_Duncan_18categ, pop_2_Duncan_sex, pop_2_Duncan_age, pop_2_Duncan_educ)
+
+pop_all_Duncan <- bind_cols(pop_0_all_Duncan, pop_1_all_Duncan, pop_2_all_Duncan)
+
+pop_all_Duncan_round <- pop_all_Duncan %>% mutate(across(starts_with("Duncan"), round, 3))
+
+pop_all_Duncan
+```
+
+### Moran's index of spatial autocorrelation
+
+```{r, eval=FALSE}
+
+dfpop_0_prop <- dfpop_0/dfpop_0$pop
+pop_0_geom <- pop_0[, -1:-28] 
+pop_0_prop <- bind_cols(pop_0_geom, dfpop_0_prop)
+
+nb0 <- poly2nb(pop_0_prop, queen=TRUE)
+lw0 <- nb2listw(nb0, style="W", zero.policy=TRUE)
+
+list <- colnames(dfpop_0_prop[,2:27])
+print(list)
+n = length(list)
+n
+pop_0_moran <- data.frame(matrix(ncol = 2))
+colnames(pop_0_moran) <- c("pop_0_IMoran" , "pop_0_pvalue")
+
+for (i in list)
+{
+  print(i)
+  pop_0_i <- pop_0_prop[,i]
+  colnames(pop_0_i)[1] ="ok"
+  pop_0_moran[i, 1] <- moran.test(pop_0_i$ok, lw0, zero.policy=TRUE, alternative="greater") [3]
+  pop_0_moran[i, 2] <- moran.test(pop_0_i$ok, lw0, zero.policy=TRUE, alternative="greater") [2]
+}
+
+pop_0_moran <- pop_0_moran[-1,] # On supprime la 1ere ligne vide...
+
+
+## pop_1 (day) ####
+
+dfpop_1_prop <- dfpop_1/dfpop_1$pop
+pop_1_geom <- pop_1[, -1:-28] 
+pop_1_prop <- bind_cols(pop_1_geom, dfpop_1_prop)
+
+nb1 <- poly2nb(pop_1_prop, queen=TRUE)
+lw1 <- nb2listw(nb1, style="W", zero.policy=TRUE)
+
+list <- colnames(dfpop_1_prop[,2:27])
+print(list)
+n = length(list)
+n
+pop_1_moran <- data.frame(matrix(ncol = 2))
+colnames(pop_1_moran) <- c( "pop_1_IMoran" , "pop_1_pvalue")
+
+for (i in list)
+{
+  print(i)
+  pop_1_i <- pop_1_prop[,i]
+  colnames(pop_1_i)[1] ="ok"
+  pop_1_moran[i, 1] <- moran.test(pop_1_i$ok, lw1, zero.policy=TRUE, alternative="greater") [3]
+  pop_1_moran[i, 2] <- moran.test(pop_1_i$ok, lw1, zero.policy=TRUE, alternative="greater") [2]
+}
+
+pop_1_moran <- pop_1_moran[-1,] # On supprime la 1ere ligne vide...
+
+
+## pop_2 (evening)####
+
+dfpop_2_prop <- dfpop_2/dfpop_2$pop
+pop_2_geom <- pop_2[, -1:-28] 
+pop_2_prop <- bind_cols(pop_2_geom, dfpop_2_prop)
+
+nb2 <- poly2nb(pop_2_prop, queen=TRUE)
+lw2 <- nb2listw(nb2, style="W", zero.policy=TRUE)
+
+list <- colnames(dfpop_2_prop[,2:27])
+print(list)
+n = length(list)
+n
+pop_2_moran <- data.frame(matrix(ncol = 2))
+colnames(pop_2_moran) <- c( "pop_2_IMoran" , "pop_2_pvalue")
+
+for (i in list)
+{
+  print(i)
+  pop_2_i <- pop_2_prop[,i]
+  colnames(pop_2_i)[1] ="ok"
+  pop_2_moran[i, 1] <- moran.test(pop_2_i$ok, lw2, zero.policy=TRUE, alternative="greater") [3]
+  pop_2_moran[i, 2] <- moran.test(pop_2_i$ok, lw2, zero.policy=TRUE, alternative="greater") [2]
+}
+
+pop_2_moran <- pop_2_moran[-1,] # On supprime la 1ere ligne vide...
+
+
+## Combine Moran pop_0, pop_1, pop_2 ####
+pop_all_Moran <- bind_cols(pop_0_moran, pop_1_moran, pop_2_moran)
+
+pop_all_Moran_round <- pop_all_Moran %>% mutate(across(ends_with("IMoran"), round, 3))
+pop_all_Moran_round <- pop_all_Moran_round %>% mutate(across(ends_with("pvalue"), round, 3))
+
+pop_all_Moran_round
+```
+
+
+## Analysis of empirical and synthetic data (section 2.2)
+
+### Summary by sociodemographic groups.
+
+
+```{r}
+data <- read.csv("data/sociodemo_distribution_healthy.csv", stringsAsFactors = F)
+head(data)
+```
+
+`n_idf` = number of individuals of a particular group in 2012 in the Paris Region (Ile de France).
+`N_2002` = number of individuals of a particular group in the dietary survey in 2002.
+`N_2008` = number of individuals of a particular group in the dietary survey in 2008.
+`conso_5_2002` = proportion of individuals eating 5+ portions of fruit and vegetables a day in the dietary survey in 2002.
+`conso_5_2008` = proportion of individuals eating 5+ portions of fruit and vegetables a day in the dietary survey in 2008.
+
+
+###  Computation of the total proportion of healthy individuals (i.e. eating 5+ portions of fruit and vegetables a day) 
+
+
+```{r}
+data$conso_5_2002 <- as.numeric(data$conso_5_2002)
+data$conso_5_2008 <- as.numeric(data$conso_5_2008)
+n_tot_idf <- sum(data$n_idf)
+data$share_idf <- data$n_idf / n_tot_idf
+data$h_idf_2002 <- round(data$n_idf * data$conso_5_2002,0)
+data$h_idf_2008 <- round(data$n_idf * data$conso_5_2008,0)
+data$h_baro_2002 <- round(data$N_2002 * data$conso_5_2002,0)
+data$h_baro_2008 <- round(data$N_2008 * data$conso_5_2008,0)
+
+
+total_prop <- function(data, year, sample){
+  if(sample == "idf"){
+    tp <- 
+      sum(data[,paste("h", sample, year, sep="_")]) / 
+      sum(data$n_idf)
+  } else {
+    tp <- 
+      sum(data[,paste("h", sample, year, sep="_")]) / 
+      sum(data[,paste("N", year, sep="_")])
+  }
+    return(tp)
+  }
+
+```
+
+Results with the Paris region as reference population
+
+```{r}
+total_prop(data=data, year = 2002, sample = "idf")
+total_prop(data=data, year = 2008, sample = "idf")
+
+```
+
+Results with the diet survey as reference population
+
+```{r}
+total_prop(data=data, year = 2002, sample = "baro")
+total_prop(data=data, year = 2008, sample = "baro")
+```
+
+### Computation of EducIneqIndex
+
+```{r}
+n_tot_baro_2002 <- sum(data$N_2002)
+n_tot_baro_2008 <- sum(data$N_2008)
+
+
+EII <- function(data, year, sample){
+  if(sample == "idf"){
+    eii <- (
+      data[data$Sex == 1 & data$Age == 1 & data$Edu == 3,
+         paste0("conso_5_", year)] / 
+       data[data$Sex == 1 & data$Age == 1 & data$Edu == 1,
+            paste0("conso_5_", year)]
+     ) * (
+              sum(data[data$Sex == 1 & data$Age == 1, "n_idf"] / n_tot_idf) 
+              ) + (
+                data[data$Sex == 1 & data$Age == 2 & data$Edu == 3,
+                     paste0("conso_5_", year)] / 
+                  data[data$Sex == 1 & data$Age == 2 & data$Edu == 1,
+                       paste0("conso_5_", year)]
+              ) * (
+                sum(data[data$Sex == 1 & data$Age == 2, "n_idf"] / n_tot_idf) 
+              ) + (
+                data[data$Sex == 1 & data$Age == 3 & data$Edu == 3,
+                     paste0("conso_5_", year)] / 
+                  data[data$Sex == 1 & data$Age == 3 & data$Edu == 1,
+                       paste0("conso_5_", year)]
+              ) * (
+                sum(data[data$Sex == 1 & data$Age == 3, "n_idf"] / n_tot_idf) 
+              ) + (
+                data[data$Sex == 2 & data$Age == 1 & data$Edu == 3,
+                     paste0("conso_5_", year)] / 
+                  data[data$Sex == 2 & data$Age == 1 & data$Edu == 1,
+                       paste0("conso_5_", year)]
+              ) * (
+                sum(data[data$Sex == 2 & data$Age == 1, "n_idf"] / n_tot_idf) 
+              ) + (
+                data[data$Sex == 2 & data$Age == 2 & data$Edu == 3,
+                     paste0("conso_5_", year)] / 
+                  data[data$Sex == 2 & data$Age == 2 & data$Edu == 1,
+                       paste0("conso_5_", year)]
+              ) * (
+                sum(data[data$Sex == 2 & data$Age == 2, "n_idf"] / n_tot_idf) 
+              ) + (
+                data[data$Sex == 2 & data$Age == 3 & data$Edu == 3,
+                     paste0("conso_5_", year)] / 
+                  data[data$Sex == 2 & data$Age == 3 & data$Edu == 1,
+                       paste0("conso_5_", year)]
+              ) * (
+                sum(data[data$Sex == 2 & data$Age == 3, "n_idf"] / n_tot_idf) 
+              )
+  } else {
+    
+    if(year == 2002){ n_tot_baro <- n_tot_baro_2002 }
+    if(year == 2008){ n_tot_baro <- n_tot_baro_2008 }
+    
+    eii <- (
+      data[data$Sex == 1 & data$Age == 1 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 1 & data$Age == 1 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 1 & data$Age == 1, paste0("N_", year)] / n_tot_baro) 
+    ) + (
+      data[data$Sex == 1 & data$Age == 2 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 1 & data$Age == 2 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 1 & data$Age == 2, paste0("N_", year)] / n_tot_baro) 
+    ) + (
+      data[data$Sex == 1 & data$Age == 3 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 1 & data$Age == 3 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 1 & data$Age == 3, paste0("N_", year)] / n_tot_baro) 
+    ) + (
+      data[data$Sex == 2 & data$Age == 1 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 2 & data$Age == 1 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 2 & data$Age == 1, paste0("N_", year)] / n_tot_baro) 
+    ) + (
+      data[data$Sex == 2 & data$Age == 2 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 2 & data$Age == 2 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 2 & data$Age == 2, paste0("N_", year)] / n_tot_baro) 
+    ) + (
+      data[data$Sex == 2 & data$Age == 3 & data$Edu == 3,
+           paste0("conso_5_", year)] / 
+        data[data$Sex == 2 & data$Age == 3 & data$Edu == 1,
+             paste0("conso_5_", year)]
+    ) * (
+      sum(data[data$Sex == 2 & data$Age == 3, paste0("N_", year)] / n_tot_baro) 
+    )
+      }
+  return(eii)
+}
+```
+
+Inequality results with the Paris region as reference population
+
+```{r}
+EII(data=data, year = 2002, sample = "idf")
+EII(data=data, year = 2008, sample = "idf")
+```
+
+Inequality results with the dietary survey as reference population
+
+```{r}
+EII(data=data, year = 2002, sample = "baro")
+EII(data=data, year = 2008, sample = "baro")
+
+```
+
+## Model evaluation (section 3.5)
+
+Importing calibration results
+
+```{r}
+pareto <- read.csv2("data/nsga2_clean.csv")
+head(pareto)
+
+```
+
+Drawing the Pareto front to select a parameter set (figure 4)
+
+```{r}
+
+pareto$reliability.sample <- ifelse(pareto$evolution.samples>5, 2,1)
+pareto$objective.deltaHealth <- as.numeric(gsub(",","",pareto$objective.deltaHealth))
+
+front <- ggplot(data=pareto, aes(x = objective.deltaHealth, y=objective.deltaSocialInequality))
+front + 
+  geom_point(aes(group = typo_name, colour = typo_name, 
+                       size=reliability.sample)) +
+  scale_size_continuous(range = c(0.5,1.5)) + 
+  scale_colour_manual(values = alpha(
+    c("#faa911", #orange
+      "#07b55e", #green
+      "#1088b0", #blue
+      "#aae860" #light green
+      ), .5)) +
+  geom_vline(xintercept = 290000000) + 
+  geom_hline(yintercept = 0.36) +
+  theme_bw() 
+
+```
+
+## Results (section 4.1)
+
+Importing simulation results
+
+```{r}
+sim <- read.csv2("data/results-25042022-10000replications.csv", sep=",", dec=".")
+sim$Scenario <- ifelse(sim$numOfScenario == 1, "1A: Random residence / no move",
+                       ifelse(sim$numOfScenario == 2, "1B: Random residence / random moves",
+                              ifelse(sim$numOfScenario == 3, "2A: Observed residence / no move",
+                                     ifelse(sim$numOfScenario == 4, "2B: Observed residence / random moves",
+                                            "2C: Observed residence / observed moves"))))
+head(sim)
+```
+
+Distribution of simulated values of EducIneqIndex (EII) for the five space-time scenarios
+(10 000 replications per scenario) (figure 5)
+
+```{r}
+mean_1A <- mean(sim[sim$numOfScenario == 1,"socialInequality"])
+mean_1B <- mean(sim[sim$numOfScenario == 2,"socialInequality"])
+mean_2A <- mean(sim[sim$numOfScenario == 3,"socialInequality"])
+mean_2B <- mean(sim[sim$numOfScenario == 4,"socialInequality"])
+mean_2C <- mean(sim[sim$numOfScenario == 5,"socialInequality"])
+
+sim %>%
+  ggplot( aes(x=socialInequality, group=Scenario, fill=Scenario)) +
+  geom_vline(xintercept=1.405, size=1, color="grey30", linetype = "dashed") +
+  geom_density(alpha=0.6) +
+  scale_fill_manual(values=c("firebrick2", "mediumorchid4", "dodgerblue2", "darkorange2", "springgreen3"))+
+  theme_bw() +
+  geom_vline(xintercept=mean_1A, size=0.4, color="firebrick2") +
+  geom_vline(xintercept=mean_1B, size=0.4, color="mediumorchid4") +
+  geom_vline(xintercept=mean_2A, size=0.4, color="dodgerblue2") +
+  geom_vline(xintercept=mean_2B, size=0.4, color="darkorange2") +
+  geom_vline(xintercept=mean_2C, size=0.4, color="springgreen3") +
+  annotate("text", x=mean_1A - 0.004, y= -10, size=2.5, label=round(mean_1A,3), color="firebrick2") +
+  annotate("text", x=mean_1B - 0.004 , y= -10, size=2.5, label=round(mean_1B,3), color="mediumorchid4") +
+  annotate("text", x=mean_2A - 0.004 , y= -10, size=2.5, label=round(mean_2A,3), color="dodgerblue2") +
+  annotate("text", x=mean_2B + 0.004 , y= -10, size=2.5, label=round(mean_2B,3), color="darkorange2") +
+  annotate("text", x=mean_2C + 0.004, y= -10, size=2.5, label=round(mean_2C,3), color="springgreen3") +
+  annotate("text", x=1.405 + 0.017, y= 115, size=3, label="Value at initialisation", color="grey30") +
+  xlab("Social Inequality Index") +
+  ylab("Number of simulations") + 
+  guides(fill=guide_legend(title="Type of scenario")) #+ 
+ 
+```
+
+## Comparison of scenarios (section 4.3)
+
+### Proportion of agents with healthy behaviour per ’night’ cell at the initial and final states (TF) of the five scenarios (figure 6) 
+
+```{r}
+s0r <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg",
+              layer="Initial_0", quiet = TRUE)
+s1A <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg",
+               layer="Final", quiet = TRUE)
+s1B <- st_read( "data/results_HigherProp_Scenario2_RandomPop_RandomMove_42.gpkg",
+               layer="Final", quiet = TRUE)
+s2A <- st_read( "data/results_HigherProp_Scenario3_ObservedPop_NoMove_42.gpkg",
+               layer="Final", quiet = TRUE)
+s2B <- st_read( "data/results_HigherProp_Scenario4_ObservedPop_RandomMove_42.gpkg",
+               layer="Final", quiet = TRUE)
+s2C <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg",
+               layer="Final", quiet = TRUE)
+s0o <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg",
+               layer="Initial_0", quiet = TRUE)
+
+bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
+
+```
+
+ Initial Random
+```{r}
+tm_shape(s0r) + tm_fill(col="X.propHealthy", style="fixed", 
+                       breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
+
+ Initial Observed
+```{r}
+tm_shape(s0o) + tm_fill(col="X.propHealthy", style="fixed", 
+                       breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
+
+Scenario 1A
+```{r}
+tm_shape(s1A) + tm_fill(col="X.propHealthy", style="fixed", 
+                       breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
+
+Scenario 1B
+```{r}
+
+tm_shape(s1B) + tm_fill(col="X.propHealthy", style="fixed", 
+                        breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+```
+
+Scenario 2A
+```{r}
+
+tm_shape(s2A) + tm_fill(col="X.propHealthy", style="fixed", 
+                        breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
+
+Scenario 2B
+```{r}
+
+tm_shape(s2B) + tm_fill(col="X.propHealthy", style="fixed", 
+                        breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+```
+
+Scenario 2C
+```{r}
+
+tm_shape(s2C) + tm_fill(col="X.propHealthy", style="fixed", 
+                        breaks = bks, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
+
+
+### Computation of Duncan and Moran’s segregation indices (figure 6)
+
+
+ Initial Random
+```{r}
+nb0r <- poly2nb(s0r, queen=TRUE)
+lw0r <- nb2listw(nb0r, style="W", zero.policy=TRUE)
+
+I0r <- moran(s0r$X.propHealthy, lw0r, length(nb0r), Szero(lw0r))[1]
+I0r
+moran.test(s0r$X.propHealthy,lw0r, alternative="greater")
+
+```
+
+ Initial Observed
+```{r}
+nb0o <- poly2nb(s0o, queen=TRUE)
+lw0o <- nb2listw(nb0o, style="W", zero.policy=TRUE)
+
+I0o <- moran(s0o$X.propHealthy, lw0o, length(nb0o), Szero(lw0o))[1]
+I0o
+moran.test(s0o$X.propHealthy,lw0o, alternative="greater")
+
+```
+
+Scenario 1A
+```{r}
+nb1A <- poly2nb(s1A, queen=TRUE)
+lw1A <- nb2listw(nb1A, style="W", zero.policy=TRUE)
+
+I1A <- moran(s1A$X.propHealthy, lw1A, length(nb1A), Szero(lw1A))[1]
+I1A
+moran.test(s1A$X.propHealthy,lw1A, alternative="greater")
+```
+
+Scenario 1B
+```{r}
+nb1B <- poly2nb(s1B, queen=TRUE)
+lw1B <- nb2listw(nb1B, style="W", zero.policy=TRUE)
+
+I1B <- moran(s1B$X.propHealthy, lw1B, length(nb1B), Szero(lw1B))[1]
+I1B
+moran.test(s1B$X.propHealthy,lw1B, alternative="greater")
+```
+
+Scenario 2A
+```{r}
+nb2A <- poly2nb(s2A, queen=TRUE)
+lw2A <- nb2listw(nb2A, style="W", zero.policy=TRUE)
+
+I2A <- moran(s2A$X.propHealthy, lw2A, length(nb2A), Szero(lw2A))[1]
+I2A
+moran.test(s2A$X.propHealthy,lw2A, alternative="greater")
+```
+
+Scenario 2B
+```{r}
+nb2B <- poly2nb(s2B, queen=TRUE)
+lw2B <- nb2listw(nb2B, style="W", zero.policy=TRUE)
+
+I2B <- moran(s2B$X.propHealthy, lw2B, length(nb2B), Szero(lw2B))[1]
+I2B
+moran.test(s2B$X.propHealthy,lw2B, alternative="greater")
+```
+
+Scenario 2C
+```{r}
+nb2C <- poly2nb(s2C, queen=TRUE)
+lw2C <- nb2listw(nb2C, style="W", zero.policy=TRUE)
+
+I2C <- moran(s2C$X.propHealthy, lw2C, length(nb2C), Szero(lw2C))[1]
+I2C
+moran.test(s2C$X.propHealthy,lw2C, alternative="greater")
+
+```
+
+
+## Alternative measure of social inequality (Appendix 8.5)
+
+Computation of rank-ordered inequality measure
+
+```{r}
+data_edu <- aggregate(data[,c("n_idf", "N_2002", "N_2008",
+                              "h_idf_2002", "h_idf_2008", 
+                              "h_baro_2002", "h_baro_2008")], 
+                      by = list(data$Edu), FUN = sum)
+colnames(data_edu)[1] <- "edu"
+data_edu
+
+guido <- function(data_edu, year, sample){
+  
+  if(sample == "idf"){
+    n <- sum(data_edu[,"n_idf"])
+    n1 <- data_edu[data_edu$edu == 1,"n_idf"]
+    n2 <- data_edu[data_edu$edu == 2,"n_idf"]
+    n3 <- data_edu[data_edu$edu == 3,"n_idf"]
+  } else {
+    n <- sum(data_edu[,paste("N", year, sep="_")])
+    n1 <- data_edu[data_edu$edu == 1,paste("N", year, sep="_")]
+    n2 <- data_edu[data_edu$edu == 2,paste("N", year, sep="_")]
+    n3 <- data_edu[data_edu$edu == 3,paste("N", year, sep="_")]
+  }
+  
+  h1 <- data_edu[data_edu$edu == 1,paste("h", sample, year, sep="_")]
+  h2 <- data_edu[data_edu$edu == 2,paste("h", sample, year, sep="_")]
+  h3 <- data_edu[data_edu$edu == 3,paste("h", sample, year, sep="_")]
+  
+  t1 <- (1 - n2 - n3) / 2
+  t2 <- (n1 - n3 + 1) / 2
+  t3 <- (n1 + n2 + 1) / 2
+ 
+  guido <- ( 8 / n^2 ) * (h1 * t1 + h2 * t2 + h3 * t3)
+  return(guido)
+}
+
+guido(data_edu = data_edu, year = 2002, sample = "idf")
+guido(data_edu = data_edu, year = 2008, sample = "idf")
+guido(data_edu = data_edu, year = 2002, sample = "baro")
+guido(data_edu = data_edu, year = 2008, sample = "baro")
+```
+
+Density distribution of rank-order inequality index per scenario
+
+```{r}
+mean_1A <- mean(sim[sim$numOfScenario == 1,"erreygersE"])
+mean_1B <- mean(sim[sim$numOfScenario == 2,"erreygersE"])
+mean_2A <- mean(sim[sim$numOfScenario == 3,"erreygersE"])
+mean_2B <- mean(sim[sim$numOfScenario == 4,"erreygersE"])
+mean_2C <- mean(sim[sim$numOfScenario == 5,"erreygersE"])
+
+sim %>%
+  ggplot( aes(x=erreygersE, group=Scenario, fill=Scenario)) +
+  geom_vline(xintercept=0.0175, size=1, color="grey30", linetype = "dashed") +
+  geom_density(alpha=0.6) +
+  scale_fill_manual(values=c("firebrick2", "mediumorchid4", "dodgerblue2", "darkorange2", "springgreen3"))+
+  theme_bw() +
+  geom_vline(xintercept=mean_1A, size=0.4, color="firebrick2") +
+  geom_vline(xintercept=mean_1B, size=0.4, color="mediumorchid4") +
+  geom_vline(xintercept=mean_2A, size=0.4, color="dodgerblue2") +
+  geom_vline(xintercept=mean_2B, size=0.4, color="darkorange2") +
+  geom_vline(xintercept=mean_2C, size=0.4, color="springgreen3") +
+  annotate("text", x=mean_1A - 0.004, y= -10, size=2.5, label=round(mean_1A,3), color="firebrick2") +
+  annotate("text", x=mean_1B - 0.004 , y= -10, size=2.5, label=round(mean_1B,3), color="mediumorchid4") +
+  annotate("text", x=mean_2A - 0.004 , y= -10, size=2.5, label=round(mean_2A,3), color="dodgerblue2") +
+  annotate("text", x=mean_2B + 0.004 , y= -10, size=2.5, label=round(mean_2B,3), color="darkorange2") +
+  annotate("text", x=mean_2C + 0.004, y= -10, size=2.5, label=round(mean_2C,3), color="springgreen3") +
+  annotate("text", x=0.0175 + 0.0051, y= 115, size=3, label="Value at initialisation", color="grey30") +
+  xlab("Rank-Order Inequality Index") +
+  ylab("Number of simulations") + 
+  guides(fill=guide_legend(title="Type of scenario")) #+ 
+
+
+```
+
+
+
+
