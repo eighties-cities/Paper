@@ -19,7 +19,7 @@ library(reshape2)
 library(sf)
 library(spdep)
 library(tmap)
-library(OasisR) ## old package (OK for version R.2.1)
+#library(OasisR) ## old package (OK for version R.2.1)
 ```
 
 ## Synthetic population - H24 library (section 2.1)
@@ -95,7 +95,7 @@ pop_2 <- pop_2 %>%
 Duncan's segregation index is one-group form of dissimilarity index DI and measures the unevenness of a group distribution compared to the rest of the population. It can be interpreted as the share of the group that would have to move to achieve an even distribution compared to the rest of the population. You should not include a column with total population, because this will be interpreted as a group.
 
 In night cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_0 <- pop_0 %>% st_drop_geometry()
 
 pop_0_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_0[,2:19]))
@@ -122,7 +122,7 @@ pop_0_all_Duncan_round <- pop_0_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 In day cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_1 <- pop_1 %>% st_drop_geometry()
 
 pop_1_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_1[,2:19]))
@@ -148,7 +148,7 @@ pop_1_all_Duncan_round <- pop_1_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 In evening cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_2 <- pop_2 %>% st_drop_geometry()
 
 pop_2_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_2[,2:19]))
@@ -175,7 +175,7 @@ pop_2_all_Duncan_round <- pop_2_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 Build table
-```{r, eval=T}
+```{r, eval=F}
 pop_all_Duncan_round <- bind_cols(pop_0_all_Duncan_round, pop_1_all_Duncan_round, pop_2_all_Duncan_round)
 pop_all_Duncan_round 
 
@@ -185,7 +185,7 @@ pop_all_Duncan_round
 ### Moran's index of spatial autocorrelation (Figure 1 and Appendix 3)
 
 In night cells
-```{r}
+```{r, eval=F}
 dfpop_0_prop <- dfpop_0/dfpop_0$pop
 pop_0_geom <- pop_0[, -1:-28] 
 pop_0_prop <- bind_cols(pop_0_geom, dfpop_0_prop)
@@ -213,7 +213,7 @@ pop_0_moran_round
 ```
 
 In day cells
-```{r}
+```{r, eval=F}
 
 dfpop_1_prop <- dfpop_1/dfpop_1$pop
 pop_1_geom <- pop_1[, -1:-28] 
@@ -243,7 +243,7 @@ pop_1_moran_round
 ```
 
 In evening cells
-```{r}
+```{r, eval=F}
 
 dfpop_2_prop <- dfpop_2/dfpop_2$pop
 pop_2_geom <- pop_2[, -1:-28] 
@@ -272,7 +272,7 @@ pop_2_moran_round
 ```
 
 Combine Moran tables pop_0, pop_1, pop_2
-```{r}
+```{r, eval=F}
 pop_all_moran <- bind_cols(pop_0_moran_round, pop_1_moran_round, pop_2_moran_round)
 
 ```
@@ -489,9 +489,44 @@ front +
 
 ```
 
-Drawing more figures about the Pareto front (Appendix 6)
+Distribution of parameter values along the Pareto front (Appendix 6)
 
-!! TO DO Clementine
+```{r}
+pareto$id <- rownames(pareto)
+colnames(pareto)
+pareto_long <- melt(pareto[,c("maxProbaToSwitch","constraintsStrength" ,
+                              "inertiaCoefficient","healthyDietReward",
+                              "objective.deltaSocialInequality", "objective.deltaHealth",
+                              "typo_name", "reliability.sample")], 
+                    id.vars=c("objective.deltaSocialInequality", "objective.deltaHealth", 
+                              "typo_name", "reliability.sample"))
+
+ggplot(pareto_long, aes(objective.deltaHealth, value)) + 
+  geom_point(aes(group = typo_name, colour = typo_name, 
+                 size=reliability.sample)) +
+  scale_size_continuous(range = c(0.5,1.5)) + scale_colour_manual(values = alpha(
+    c("#faa911", #orange
+      "#07b55e", #green
+      "#1088b0", #blue
+      "#aae860" #light green
+    ), .5)) +
+  theme_bw() +  theme(legend.position="none") +
+  facet_wrap(~variable, scales = "free_y", ncol = 1)
+
+ggplot(pareto_long, aes(value, objective.deltaSocialInequality)) + 
+  geom_point(aes(group = typo_name, colour = typo_name, 
+                 size=reliability.sample)) +
+  scale_size_continuous(range = c(0.5,1.5)) + scale_colour_manual(values = alpha(
+    c("#faa911", #orange
+      "#07b55e", #green
+      "#1088b0", #blue
+      "#aae860" #light green
+    ), .5)) +
+  theme_bw()  +  theme(legend.position="none")+
+  facet_wrap(~variable, scales = "free_x", nrow = 1)
+
+```
+
 
 
 ## Results (section 4)
@@ -640,7 +675,7 @@ tm_shape(s2C) + tm_fill(col="X.propHealthy", style="fixed",
 
 
 #### Duncan Dissimilarity Index (figure 6)  
-```{r}
+```{r, eval=F}
 duncan <- data.frame(matrix(ncol = 2, nrow=7))
 colnames(duncan) <- c("type", "Duncan" )
 
@@ -838,7 +873,7 @@ s2C_day <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_
 
 Duncan
 
-```{r}
+```{r, eval=F}
 duncan_day <- data.frame(matrix(ncol = 2, nrow=5))
 colnames(duncan_day) <- c("type", "Duncan_dayCell" )
 
@@ -908,7 +943,7 @@ moran_round_day <- moran_day %>% mutate(across(2:3, round, 3))
 
 Combine Duncan and Moran files
 
-```{r}
+```{r, eval=FALSE}
 Duncan_moran_dayCell <- left_join(duncan_day, moran_round_day, by = "type")
 Duncan_moran_dayCell 
 ```
@@ -935,7 +970,7 @@ s2C_evening <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedM
 
 Duncan
 
-```{r}
+```{r, eval=F}
 duncan_evening <- data.frame(matrix(ncol = 2, nrow=5))
 colnames(duncan_evening) <- c("type", "Duncan_eveningCell" )
 
@@ -1008,7 +1043,7 @@ moran_round_evening <- moran_evening %>% mutate(across(2:3, round, 3))
 
 Combine Duncan and Moran files
 
-```{r}
+```{r, eval=F}
 Duncan_moran_eveningCell <- left_join(duncan_evening, moran_round_evening, by = "type")
 Duncan_moran_eveningCell
 ```
