@@ -44,14 +44,19 @@ pop_0 <- pop_0 %>%
   mutate(
     men =  sum(across(starts_with('pop_1'))),
     women = sum(across(starts_with('pop_2'))),
-         
+    pop = men + women,
+       
     age1 = sum(across(starts_with(c('pop_1_1', 'pop_2_1')))),
     age2 = sum(across(starts_with(c('pop_1_2', 'pop_2_2')))),
     age3 = sum(across(starts_with(c('pop_1_3', 'pop_2_3')))),
     
     educ1 = sum(across(ends_with('_1'))),
     educ2 = sum(across(ends_with('_2'))),
-    educ3 = sum(across(ends_with('_3')))
+    educ3 = sum(across(ends_with('_3'))),
+    
+    pct_educ3 = (educ3 / pop) * 100,
+    pct_age3 = (age3 / pop) * 100,
+    pct_women = (women / pop) * 100
     )
 
 pop_1 <- pop_1 %>% 
@@ -59,7 +64,7 @@ pop_1 <- pop_1 %>%
   mutate(
     men =  sum(across(starts_with('pop_1'))),
     women = sum(across(starts_with('pop_2'))),
-    
+      
     age1 = sum(across(starts_with(c('pop_1_1', 'pop_2_1')))),
     age2 = sum(across(starts_with(c('pop_1_2', 'pop_2_2')))),
     age3 = sum(across(starts_with(c('pop_1_3', 'pop_2_3')))),
@@ -86,9 +91,55 @@ pop_2 <- pop_2 %>%
 ```
 
 
-### Distribution of the synthetic population in ’night’ cells in the Paris Region - Maps (Figure 1)
+### Distribution of the synthetic population by demographic category in the Paris Region (night cells) (Figure 1)
 
-!! TO DO Clementine
+Total Population density
+```{r}
+
+bks_pop <- c(1, 10, 100, 1000, 10000, Inf)
+
+tm_shape(pop_0) + tm_fill(col="pop", style="fixed", 
+                       breaks = bks_pop, palette="Greys") +
+  tm_legend(outside=TRUE)
+
+```
+Proportion of people with 2+ years of higher education
+```{r}
+
+bks_edu <- c(0, 3.5, 7.7, 11.4, 17.2, 100)
+
+
+tm_shape(pop_0) + tm_fill(col="pct_educ3", style="fixed", 
+                       breaks = bks_edu, palette="Reds") +
+  tm_legend(outside=TRUE)
+
+```
+
+
+Proportion of people aged 60+
+```{r}
+
+bks_age <- c(0, 12.5, 17.1, 20.6, 25.1, 100)
+
+
+tm_shape(pop_0) + tm_fill(col="pct_age3", style="fixed", 
+                       breaks = bks_age, palette="Blues") +
+  tm_legend(outside=TRUE)
+
+```
+
+
+Proportion of women
+```{r}
+
+bks_sex <- c(0, 45.8, 50, 51.6, 54.5, 100)
+
+
+tm_shape(pop_0) + tm_fill(col="pct_women", style="fixed", 
+                       breaks = bks_sex, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+```
 
 
 ### Duncan Dissimilarity Index (Figure 1 and Appendix 3)
@@ -610,10 +661,6 @@ bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
 ```
 
 #### Maps (figure 6)
-```{r}
-bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
-
-```
 
  Initial Random
 ```{r}
