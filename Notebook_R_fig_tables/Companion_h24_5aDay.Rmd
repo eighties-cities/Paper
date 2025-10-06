@@ -1,7 +1,7 @@
 ---
 title: "Companion_H24_5aDay"
 author: "Clémentine Cottineau-Mugadza, Julien Perret, Romain Reuillon, Sébastien Rey-Coyrehourcq, Julie Vallée"
-date: "2024-09-13"
+date: "2024-09-12"
 output: html_document
 ---
 
@@ -19,7 +19,7 @@ library(reshape2)
 library(sf)
 library(spdep)
 library(tmap)
-library(OasisR) ## old package (OK for version R.2.1)
+#library(OasisR) ## old package (OK for version R.2.1)
 ```
 
 ## Synthetic population - H24 library (section 2.1)
@@ -91,7 +91,7 @@ pop_2 <- pop_2 %>%
 ```
 
 
-### Maps of the synthetic population by demographic category in the Paris Region (night cells) (Figure 1)
+### Distribution of the synthetic population by demographic category in the Paris Region (night cells) (Figure 1)
 
 Total Population density
 ```{r}
@@ -103,7 +103,6 @@ tm_shape(pop_0) + tm_fill(col="pop", style="fixed",
   tm_legend(outside=TRUE)
 
 ```
-
 Proportion of people with 2+ years of higher education
 ```{r}
 
@@ -147,7 +146,7 @@ tm_shape(pop_0) + tm_fill(col="pct_women", style="fixed",
 Duncan's segregation index is one-group form of dissimilarity index DI and measures the unevenness of a group distribution compared to the rest of the population. It can be interpreted as the share of the group that would have to move to achieve an even distribution compared to the rest of the population. You should not include a column with total population, because this will be interpreted as a group.
 
 In night cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_0 <- pop_0 %>% st_drop_geometry()
 
 pop_0_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_0[,2:19]))
@@ -174,7 +173,7 @@ pop_0_all_Duncan_round <- pop_0_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 In day cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_1 <- pop_1 %>% st_drop_geometry()
 
 pop_1_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_1[,2:19]))
@@ -200,7 +199,7 @@ pop_1_all_Duncan_round <- pop_1_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 In evening cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_2 <- pop_2 %>% st_drop_geometry()
 
 pop_2_Duncan_18categ<- as.data.frame(ISDuncan(dfpop_2[,2:19]))
@@ -227,7 +226,7 @@ pop_2_all_Duncan_round <- pop_2_all_Duncan %>% mutate(across(starts_with("Duncan
 ```
 
 Build table
-```{r, eval=T}
+```{r, eval=F}
 pop_all_Duncan_round <- bind_cols(pop_0_all_Duncan_round, pop_1_all_Duncan_round, pop_2_all_Duncan_round)
 pop_all_Duncan_round 
 
@@ -237,7 +236,7 @@ pop_all_Duncan_round
 ### Moran's index of spatial autocorrelation (Figure 1 and Appendix 3)
 
 In night cells
-```{r, eval=T}
+```{r, eval=F}
 dfpop_0_prop <- dfpop_0/dfpop_0$pop
 pop_0_geom <- pop_0[, -1:-28] 
 pop_0_prop <- bind_cols(pop_0_geom, dfpop_0_prop)
@@ -265,7 +264,7 @@ pop_0_moran_round
 ```
 
 In day cells
-```{r, eval=T}
+```{r, eval=F}
 
 dfpop_1_prop <- dfpop_1/dfpop_1$pop
 pop_1_geom <- pop_1[, -1:-28] 
@@ -295,7 +294,7 @@ pop_1_moran_round
 ```
 
 In evening cells
-```{r, eval=T}
+```{r, eval=F}
 
 dfpop_2_prop <- dfpop_2/dfpop_2$pop
 pop_2_geom <- pop_2[, -1:-28] 
@@ -324,7 +323,7 @@ pop_2_moran_round
 ```
 
 Combine Moran tables pop_0, pop_1, pop_2
-```{r, eval=T}
+```{r, eval=F}
 pop_all_moran <- bind_cols(pop_0_moran_round, pop_1_moran_round, pop_2_moran_round)
 
 ```
@@ -631,34 +630,9 @@ sim %>%
 ```
 
 
+Overall proportions of agents with healthy behaviour for the 5 scenarios (section 4.2)
 
-Median values (and Q1;Q3) of socialInequality in healthy diet for the 5 scenarios (table 5)
-```{r}
-socialIneq_distrib_perScenario <- sim %>% 
-  group_by(numOfScenario) %>%
-  
-  summarise(median = round(quantile(socialInequality, probs = 0.5),3),
-            Q1 = round(quantile(socialInequality, probs = 0.25),3),
-            Q3 = round(quantile(socialInequality, probs = 0.75),3))
-
-socialIneq_distrib_perScenario
-```
-
-Median values(and Q1;Q3)  of proportions of agents with healthy behaviour for the 5 scenarios (table 5)
-```{r}
-totAgents <- sum(pop_0$pop)
-totAgents
-
-propHealthy_distrib_perScenario <- sim %>% 
-  group_by(numOfScenario) %>%
-  
-  summarise(median = round(quantile(numberOfHealthy/totAgents*100, probs = 0.5),2),
-            Q1 = round(quantile(numberOfHealthy/totAgents*100, probs = 0.25),2),
-            Q3 = round(quantile(numberOfHealthy/totAgents*100, probs = 0.75),2))
-
-propHealthy_distrib_perScenario
-```
-
+!! TO DO JULIE (Table 5)
 
 
 ### Spatial distribution of agents with healthy behaviour for the 5 scenarios - in the night cells (section 4.3)
@@ -687,11 +661,6 @@ bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
 ```
 
 #### Maps (figure 6)
-
-```{r}
-bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
-```
-
 
  Initial Random
 ```{r}
@@ -753,7 +722,7 @@ tm_shape(s2C) + tm_fill(col="X.propHealthy", style="fixed",
 
 
 #### Duncan Dissimilarity Index (figure 6)  
-```{r, eval=T}
+```{r, eval=F}
 duncan <- data.frame(matrix(ncol = 2, nrow=7))
 colnames(duncan) <- c("type", "Duncan" )
 
@@ -792,8 +761,43 @@ duncan_round <- duncan %>% mutate(across(starts_with("Duncan"), round, 3))
 duncan_round
 ```
 
+#### Sensitivity and robusness (figure 6)
 
-####  Moran's index of spatial autocorrelation (figure 6)
+```{r}
+
+random_moves <- read.csv("data/random_moves.csv")
+head(random_moves)
+
+annotation <- data.frame(
+   x = c(0,1),
+   y = c(1.57,1.46),
+   label = c("Scenario 2C", "Scenario 2B")
+)
+
+
+ggplot(random_moves, aes(x=randomMoveRatio, y=socialInequality)) +
+    geom_hline(yintercept = 1.424, color = "darkorange2") +
+  geom_hline(yintercept = 1.536, color = "springgreen3") +
+  geom_violin(aes(group=randomMoveRatio, fill=randomMoveRatio)) +
+  geom_point(size=0.05) +
+  scale_fill_gradient(
+    low = "springgreen3", 
+    high = "darkorange2"
+    ) + 
+  geom_text(data=annotation, aes(x=x, y=y, label=label),
+            colour = c("springgreen3","darkorange2"),
+           size=4 , angle=0, fontface="bold") +
+ ylim(1,1.6) +
+  guides(fill="none") +
+  xlab("Proportion of random moves") +
+  ylab("Social inequality index (EII)")
+
+
+
+  
+```
+
+####  Moran's index of spatial autocorrelation (figure 7)
 
 ```{r}
 moran <- data.frame(matrix(ncol = 3, nrow=7))
@@ -926,7 +930,208 @@ sim %>%
 
 ```
 
-## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 8)
+## Alternative measures of spatial distribution of agents with healthy behaviour - in the day and evening cells (Appendix 8)
+
+### In day cells
+
+```{r}
+
+s1A_day <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg", quiet = TRUE,
+                layer="Final_1")
+
+s1B_day <- st_read( "data/results_HigherProp_Scenario2_RandomPop_RandomMove_42.gpkg", quiet = TRUE,
+                layer="Final_1")
+
+s2A_day <- st_read( "data/results_HigherProp_Scenario3_ObservedPop_NoMove_42.gpkg", quiet = TRUE,
+                layer="Final_1")
+
+s2B_day <- st_read( "data/results_HigherProp_Scenario4_ObservedPop_RandomMove_42.gpkg", quiet = TRUE,
+                layer="Final_1")
+
+s2C_day <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg", quiet = TRUE,
+                layer="Final_1")
+
+```
+
+Duncan
+
+```{r, eval=F}
+duncan_day <- data.frame(matrix(ncol = 2, nrow=5))
+colnames(duncan_day) <- c("type", "Duncan_dayCell" )
+
+dfs1A_day<- s1A_day %>% st_drop_geometry()
+duncan_day[1,1] <- "s1A_final_day"
+duncan_day[1,2]<- ISDuncan(dfs1A_day[,3:4]) [1]
+
+dfs1B_day<- s1B_day %>% st_drop_geometry()
+duncan_day[2,1] <- "s1B_final_day"
+duncan_day[2,2]<- ISDuncan(dfs1B_day[,3:4]) [1]
+
+dfs2A_day<- s2A_day %>% st_drop_geometry()
+duncan_day[3,1] <- "s2A_final_day"
+duncan_day[3,2]<- ISDuncan(dfs2A_day[,3:4]) [1]
+
+dfs2B_day<- s2B_day %>% st_drop_geometry()
+duncan_day[4,1] <- "s2B_final_day"
+duncan_day[4,2]<- ISDuncan(dfs2B_day[,3:4]) [1]
+
+dfs2C_day<- s2C_day %>% st_drop_geometry()
+duncan_day[5,1] <- "s2C_final_day"
+duncan_day[5,2]<- ISDuncan(dfs2C_day[,3:4]) [1]
+
+duncan_day <- duncan_day %>% mutate(across(starts_with("Duncan"), round, 3))
+
+```
+
+Moran
+
+```{r}
+moran_day <- data.frame(matrix(ncol = 3, nrow=5))
+colnames(moran_day) <- c("type", "IMoran_dayCell" , "pvalueMoran_dayCell")
+
+nbs1A_day <- poly2nb(s1A_day, queen=TRUE)
+lws1A_day  <- nb2listw(nbs1A_day, style="W", zero.policy=TRUE)
+moran_day[1,1] <- "s1A_final_day"
+moran_day[1,2] <- moran.test(s1A_day$X.propHealthy, lws1A_day, zero.policy=TRUE, alternative="greater") [3]
+moran_day[1,3] <- moran.test(s1A_day$X.propHealthy, lws1A_day, zero.policy=TRUE, alternative="greater") [2]
+
+nbs1B_day <- poly2nb(s1B_day, queen=TRUE)
+lws1B_day  <- nb2listw(nbs1B_day, style="W", zero.policy=TRUE)
+moran_day[2,1] <- "s1B_final_day"
+moran_day[2,2] <- moran.test(s1B_day$X.propHealthy, lws1B_day, zero.policy=TRUE, alternative="greater") [3]
+moran_day[2,3] <- moran.test(s1B_day$X.propHealthy, lws1B_day, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2A_day <- poly2nb(s2A_day, queen=TRUE)
+lws2A_day  <- nb2listw(nbs2A_day, style="W", zero.policy=TRUE)
+moran_day[3,1] <- "s2A_final_day"
+moran_day[3,2] <- moran.test(s2A_day$X.propHealthy, lws2A_day, zero.policy=TRUE, alternative="greater") [3]
+moran_day[3,3] <- moran.test(s2A_day$X.propHealthy, lws2A_day, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2B_day <- poly2nb(s2B_day, queen=TRUE)
+lws2B_day  <- nb2listw(nbs2B_day, style="W", zero.policy=TRUE)
+moran_day[4,1] <- "s2B_final_day"
+moran_day[4,2] <- moran.test(s2B_day$X.propHealthy, lws2B_day, zero.policy=TRUE, alternative="greater") [3]
+moran_day[4,3] <- moran.test(s2B_day$X.propHealthy, lws2B_day, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2C_day <- poly2nb(s2C_day, queen=TRUE)
+lws2C_day  <- nb2listw(nbs2C_day, style="W", zero.policy=TRUE)
+moran_day[5,1] <- "s2C_final_day"
+moran_day[5,2] <- moran.test(s2C_day$X.propHealthy, lws2C_day, zero.policy=TRUE, alternative="greater") [3]
+moran_day[5,3] <- moran.test(s2C_day$X.propHealthy, lws2C_day, zero.policy=TRUE, alternative="greater") [2]
+
+moran_round_day <- moran_day %>% mutate(across(2:3, round, 3))
+
+```
+
+Combine Duncan and Moran files
+
+```{r, eval=FALSE}
+Duncan_moran_dayCell <- left_join(duncan_day, moran_round_day, by = "type")
+Duncan_moran_dayCell 
+```
+
+### In evening cells
+
+```{r}
+
+s1A_evening <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg", quiet = TRUE,
+                    layer="Final_2")
+
+s1B_evening <- st_read( "data/results_HigherProp_Scenario2_RandomPop_RandomMove_42.gpkg", quiet = TRUE,
+                    layer="Final_2")
+
+s2A_evening <- st_read( "data/results_HigherProp_Scenario3_ObservedPop_NoMove_42.gpkg", quiet = TRUE,
+                    layer="Final_2")
+
+s2B_evening <- st_read( "data/results_HigherProp_Scenario4_ObservedPop_RandomMove_42.gpkg", quiet = TRUE,
+                    layer="Final_2")
+
+s2C_evening <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg", quiet = TRUE,
+                    layer="Final_2")
+```
+
+Duncan
+
+```{r, eval=F}
+duncan_evening <- data.frame(matrix(ncol = 2, nrow=5))
+colnames(duncan_evening) <- c("type", "Duncan_eveningCell" )
+
+
+dfs1A_evening<- s1A_evening %>% st_drop_geometry()
+duncan_evening[1,1] <- "s1A_final_evening"
+duncan_evening[1,2]<- ISDuncan(dfs1A_evening[,3:4]) [1]
+
+dfs1B_evening<- s1B_evening %>% st_drop_geometry()
+duncan_evening[2,1] <- "s1B_final_evening"
+duncan_evening[2,2]<- ISDuncan(dfs1B_evening[,3:4]) [1]
+
+dfs2A_evening<- s2A_evening %>% st_drop_geometry()
+duncan_evening[3,1] <- "s2A_final_evening"
+duncan_evening[3,2]<- ISDuncan(dfs2A_evening[,3:4]) [1]
+
+dfs2B_evening<- s2B_evening %>% st_drop_geometry()
+duncan_evening[4,1] <- "s2B_final_evening"
+duncan_evening[4,2]<- ISDuncan(dfs2B_evening[,3:4]) [1]
+
+dfs2C_evening<- s2C_evening %>% st_drop_geometry()
+duncan_evening[5,1] <- "s2C_final_evening"
+duncan_evening[5,2]<- ISDuncan(dfs2C_evening[,3:4]) [1]
+
+duncan_evening <- duncan_evening %>% mutate(across(starts_with("Duncan"), round, 3))
+
+```
+
+
+Moran
+
+```{r}
+moran_evening <- data.frame(matrix(ncol = 3, nrow=5))
+colnames(moran_evening) <- c("type", "IMoran_eveningCell" , "pvalueMoran_eveningCell")
+
+nbs1A_evening <- poly2nb(s1A_evening, queen=TRUE)
+lws1A_evening  <- nb2listw(nbs1A_evening, style="W", zero.policy=TRUE)
+moran_evening[1,1] <- "s1A_final_evening"
+moran_evening[1,2] <- moran.test(s1A_evening$X.propHealthy, lws1A_evening, zero.policy=TRUE, alternative="greater") [3]
+moran_evening[1,3] <- moran.test(s1A_evening$X.propHealthy, lws1A_evening, zero.policy=TRUE, alternative="greater") [2]
+
+nbs1B_evening <- poly2nb(s1B_evening, queen=TRUE)
+lws1B_evening  <- nb2listw(nbs1B_evening, style="W", zero.policy=TRUE)
+moran_evening[2,1] <- "s1B_final_evening"
+moran_evening[2,2] <- moran.test(s1B_evening$X.propHealthy, lws1B_evening, zero.policy=TRUE, alternative="greater") [3]
+moran_evening[2,3] <- moran.test(s1B_evening$X.propHealthy, lws1B_evening, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2A_evening <- poly2nb(s2A_evening, queen=TRUE)
+lws2A_evening  <- nb2listw(nbs2A_evening, style="W", zero.policy=TRUE)
+moran_evening[3,1] <- "s2A_final_evening"
+moran_evening[3,2] <- moran.test(s2A_evening$X.propHealthy, lws2A_evening, zero.policy=TRUE, alternative="greater") [3]
+moran_evening[3,3] <- moran.test(s2A_evening$X.propHealthy, lws2A_evening, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2B_evening <- poly2nb(s2B_evening, queen=TRUE)
+lws2B_evening  <- nb2listw(nbs2B_evening, style="W", zero.policy=TRUE)
+moran_evening[4,1] <- "s2B_final_evening"
+moran_evening[4,2] <- moran.test(s2B_evening$X.propHealthy, lws2B_evening, zero.policy=TRUE, alternative="greater") [3]
+moran_evening[4,3] <- moran.test(s2B_evening$X.propHealthy, lws2B_evening, zero.policy=TRUE, alternative="greater") [2]
+
+nbs2C_evening <- poly2nb(s2C_evening, queen=TRUE)
+lws2C_evening  <- nb2listw(nbs2C_evening, style="W", zero.policy=TRUE)
+moran_evening[5,1] <- "s2C_final_evening"
+moran_evening[5,2] <- moran.test(s2C_evening$X.propHealthy, lws2C_evening, zero.policy=TRUE, alternative="greater") [3]
+moran_evening[5,3] <- moran.test(s2C_evening$X.propHealthy, lws2C_evening, zero.policy=TRUE, alternative="greater") [2]
+
+moran_round_evening <- moran_evening %>% mutate(across(2:3, round, 3))
+
+```
+
+
+Combine Duncan and Moran files
+
+```{r, eval=F}
+Duncan_moran_eveningCell <- left_join(duncan_evening, moran_round_evening, by = "type")
+Duncan_moran_eveningCell
+```
+
+
+## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 9)
 
 ```{r, echo=TRUE}
 library(cowplot)
@@ -969,7 +1174,7 @@ recode <- function(x) {
 }
 ```
 
-
+     
 Simulated proportions of healthy agents, of social inequality (EII) and of rank-ordered inequalities (Et)
 
 ```{r}
@@ -1013,7 +1218,7 @@ Simulated proportions of healthy agents, of social inequality (EII) and of rank-
 
  p_hp_all <- plot_grid(p_hp_propHealthy, p_hp_ineq, p_hp_e, labels = "AUTO",nrow=1, align="h")
  p_hp_all
-
+ 
  ##ggsave("out/p_hp_all.pdf",p_hp_all, width=20)
 ```
 
@@ -1064,208 +1269,4 @@ print(propHealtyAndOpinion_higherprop)
 
 ##ggsave("out/propHealtyAndOpinion_higherprop.pdf")
 ```
-
-
-```{r}
-knitr::knit_exit()
-```
-
-## Alternative measures of spatial distribution of agents with healthy behaviour - in the day and evening cells (not showns) 
-
-### Day cells 
-
-```{r, eval=F} 
-
- s1A_day <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg", quiet = TRUE, 
-                 layer="Final_1") 
-
- s1B_day <- st_read( "data/results_HigherProp_Scenario2_RandomPop_RandomMove_42.gpkg", quiet = TRUE, 
-                 layer="Final_1") 
-
- s2A_day <- st_read( "data/results_HigherProp_Scenario3_ObservedPop_NoMove_42.gpkg", quiet = TRUE, 
-                 layer="Final_1") 
-
- s2B_day <- st_read( "data/results_HigherProp_Scenario4_ObservedPop_RandomMove_42.gpkg", quiet = TRUE, 
-                 layer="Final_1") 
-
- s2C_day <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg", quiet = TRUE, 
-                 layer="Final_1") 
-
-``` 
-
-Duncan in Day cells 
-
-```{r, eval=F}
-duncan_day <- data.frame(matrix(ncol = 2, nrow=5))
-colnames(duncan_day) <- c("type", "Duncan_dayCell" )
-
-
-dfs1A_day<- s1A_day %>% st_drop_geometry() 
-duncan_day[1,1] <- "s1A_final_day" 
-duncan_day[1,2]<- ISDuncan(dfs1A_day[,3:4]) [1] 
-
-dfs1B_day<- s1B_day %>% st_drop_geometry() 
-duncan_day[2,1] <- "s1B_final_day" 
-duncan_day[2,2]<- ISDuncan(dfs1B_day[,3:4]) [1] 
-
-dfs2A_day<- s2A_day %>% st_drop_geometry() 
-duncan_day[3,1] <- "s2A_final_day" 
-duncan_day[3,2]<- ISDuncan(dfs2A_day[,3:4]) [1] 
-
-dfs2B_day<- s2B_day %>% st_drop_geometry() 
-duncan_day[4,1] <- "s2B_final_day" 
-duncan_day[4,2]<- ISDuncan(dfs2B_day[,3:4]) [1] 
-
-dfs2C_day<- s2C_day %>% st_drop_geometry() 
-duncan_day[5,1] <- "s2C_final_day" 
-duncan_day[5,2]<- ISDuncan(dfs2C_day[,3:4]) [1] 
-
-duncan_day <- duncan_day %>% mutate(across(starts_with("Duncan"), round, 3)) 
-
-``` 
-
-Moran in Day cells 
-
-```{r, eval=F} 
-moran_day <- data.frame(matrix(ncol = 3, nrow=5)) 
-colnames(moran_day) <- c("type", "IMoran_dayCell" , "pvalueMoran_dayCell") 
-
-nbs1A_day <- poly2nb(s1A_day, queen=TRUE) 
-lws1A_day  <- nb2listw(nbs1A_day, style="W", zero.policy=TRUE) 
-moran_day[1,1] <- "s1A_final_day" 
-moran_day[1,2] <- moran.test(s1A_day$X.propHealthy, lws1A_day, zero.policy=TRUE, alternative="greater") [3]
-moran_day[1,3] <- moran.test(s1A_day$X.propHealthy, lws1A_day, zero.policy=TRUE, alternative="greater") [2] 
-nbs1B_day <- poly2nb(s1B_day, queen=TRUE) 
-lws1B_day  <- nb2listw(nbs1B_day, style="W", zero.policy=TRUE) 
-moran_day[2,1] <- "s1B_final_day" 
-moran_day[2,2] <- moran.test(s1B_day$X.propHealthy, lws1B_day, zero.policy=TRUE, alternative="greater") [3] 
-moran_day[2,3] <- moran.test(s1B_day$X.propHealthy, lws1B_day, zero.policy=TRUE, alternative="greater") [2] 
-nbs2A_day <- poly2nb(s2A_day, queen=TRUE) 
-lws2A_day  <- nb2listw(nbs2A_day, style="W", zero.policy=TRUE) 
-moran_day[3,1] <- "s2A_final_day" 
-moran_day[3,2] <- moran.test(s2A_day$X.propHealthy, lws2A_day, zero.policy=TRUE, alternative="greater") [3] 
-moran_day[3,3] <- moran.test(s2A_day$X.propHealthy, lws2A_day, zero.policy=TRUE, alternative="greater") [2] 
-nbs2B_day <- poly2nb(s2B_day, queen=TRUE) 
-lws2B_day  <- nb2listw(nbs2B_day, style="W", zero.policy=TRUE) 
-moran_day[4,1] <- "s2B_final_day" 
-moran_day[4,2] <- moran.test(s2B_day$X.propHealthy, lws2B_day, zero.policy=TRUE, alternative="greater") [3] 
-moran_day[4,3] <- moran.test(s2B_day$X.propHealthy, lws2B_day, zero.policy=TRUE, alternative="greater") [2] 
-nbs2C_day <- poly2nb(s2C_day, queen=TRUE) 
-lws2C_day  <- nb2listw(nbs2C_day, style="W", zero.policy=TRUE) 
-moran_day[5,1] <- "s2C_final_day" 
-moran_day[5,2] <- moran.test(s2C_day$X.propHealthy, lws2C_day, zero.policy=TRUE, alternative="greater") [3] 
-moran_day[5,3] <- moran.test(s2C_day$X.propHealthy, lws2C_day, zero.policy=TRUE, alternative="greater") [2] 
-
-moran_round_day <- moran_day %>% mutate(across(2:3, round, 3)) 
-``` 
-
-Combine Duncan and Moran files for Day cells 
-
-
-```{r, eval=FALSE}
-Duncan_moran_dayCell <- left_join(duncan_day, moran_round_day, by = "type")
-Duncan_moran_dayCell
-```
-
-
-
-### Evening cells 
-
-```{r, eval=F} 
-
-s1A_evening <- st_read( "data/results_HigherProp_Scenario1_RandomPop_NoMove_42.gpkg", quiet = TRUE, 
-                    layer="Final_2") 
-
-s1B_evening <- st_read( "data/results_HigherProp_Scenario2_RandomPop_RandomMove_42.gpkg", quiet = TRUE, 
-                  layer="Final_2") 
-
-s2A_evening <- st_read( "data/results_HigherProp_Scenario3_ObservedPop_NoMove_42.gpkg", quiet = TRUE, 
-                     layer="Final_2") 
-
-s2B_evening <- st_read( "data/results_HigherProp_Scenario4_ObservedPop_RandomMove_42.gpkg", quiet = TRUE, 
-                     layer="Final_2") 
- 
-s2C_evening <- st_read( "data/results_HigherProp_Scenario5_ObservedPop_ObservedMove_42.gpkg", quiet = TRUE, 
-                    layer="Final_2") 
-```
-
-Duncan in Evening cells 
-
-```{r, eval=F}
-duncan_evening <- data.frame(matrix(ncol = 2, nrow=5))
-colnames(duncan_evening) <- c("type", "Duncan_eveningCell" )
-
-dfs1A_evening<- s1A_evening %>% st_drop_geometry() 
-duncan_evening[1,1] <- "s1A_final_evening" 
-duncan_evening[1,2]<- ISDuncan(dfs1A_evening[,3:4]) [1] 
-
-dfs1B_evening<- s1B_evening %>% st_drop_geometry() 
-duncan_evening[2,1] <- "s1B_final_evening" 
-duncan_evening[2,2]<- ISDuncan(dfs1B_evening[,3:4]) [1] 
-
-dfs2A_evening<- s2A_evening %>% st_drop_geometry() 
-duncan_evening[3,1] <- "s2A_final_evening" 
-duncan_evening[3,2]<- ISDuncan(dfs2A_evening[,3:4]) [1] 
-
-dfs2B_evening<- s2B_evening %>% st_drop_geometry() 
-duncan_evening[4,1] <- "s2B_final_evening" 
-duncan_evening[4,2]<- ISDuncan(dfs2B_evening[,3:4]) [1] 
-
-dfs2C_evening<- s2C_evening %>% st_drop_geometry() 
-duncan_evening[5,1] <- "s2C_final_evening" 
-duncan_evening[5,2]<- ISDuncan(dfs2C_evening[,3:4]) [1] 
-
-duncan_evening <- duncan_evening %>% mutate(across(starts_with("Duncan"), round, 3)) 
- 
-``` 
-
-
-Moran in Evening cells 
-
-```{r, eval=F}
- moran_evening <- data.frame(matrix(ncol = 3, nrow=5)) 
- colnames(moran_evening) <- c("type", "IMoran_eveningCell" , "pvalueMoran_eveningCell") 
-
- nbs1A_evening <- poly2nb(s1A_evening, queen=TRUE) 
- lws1A_evening  <- nb2listw(nbs1A_evening, style="W", zero.policy=TRUE) 
- moran_evening[1,1] <- "s1A_final_evening" 
- moran_evening[1,2] <- moran.test(s1A_evening$X.propHealthy, lws1A_evening, zero.policy=TRUE, alternative="greater") [3] 
- moran_evening[1,3] <- moran.test(s1A_evening$X.propHealthy, lws1A_evening, zero.policy=TRUE, alternative="greater") [2] 
-
- nbs1B_evening <- poly2nb(s1B_evening, queen=TRUE) 
- lws1B_evening  <- nb2listw(nbs1B_evening, style="W", zero.policy=TRUE) 
- moran_evening[2,1] <- "s1B_final_evening" 
- moran_evening[2,2] <- moran.test(s1B_evening$X.propHealthy, lws1B_evening, zero.policy=TRUE, alternative="greater") [3] 
- moran_evening[2,3] <- moran.test(s1B_evening$X.propHealthy, lws1B_evening, zero.policy=TRUE, alternative="greater") [2] 
-
- nbs2A_evening <- poly2nb(s2A_evening, queen=TRUE) 
- lws2A_evening  <- nb2listw(nbs2A_evening, style="W", zero.policy=TRUE) 
- moran_evening[3,1] <- "s2A_final_evening" 
- moran_evening[3,2] <- moran.test(s2A_evening$X.propHealthy, lws2A_evening, zero.policy=TRUE, alternative="greater") [3] 
- moran_evening[3,3] <- moran.test(s2A_evening$X.propHealthy, lws2A_evening, zero.policy=TRUE, alternative="greater") [2] 
-
- nbs2B_evening <- poly2nb(s2B_evening, queen=TRUE) 
- lws2B_evening  <- nb2listw(nbs2B_evening, style="W", zero.policy=TRUE) 
- moran_evening[4,1] <- "s2B_final_evening" 
- moran_evening[4,2] <- moran.test(s2B_evening$X.propHealthy, lws2B_evening, zero.policy=TRUE, alternative="greater") [3] 
- moran_evening[4,3] <- moran.test(s2B_evening$X.propHealthy, lws2B_evening, zero.policy=TRUE, alternative="greater") [2] 
-
- nbs2C_evening <- poly2nb(s2C_evening, queen=TRUE) 
- lws2C_evening  <- nb2listw(nbs2C_evening, style="W", zero.policy=TRUE) 
- moran_evening[5,1] <- "s2C_final_evening" 
- moran_evening[5,2] <- moran.test(s2C_evening$X.propHealthy, lws2C_evening, zero.policy=TRUE, alternative="greater") [3] 
- moran_evening[5,3] <- moran.test(s2C_evening$X.propHealthy, lws2C_evening, zero.policy=TRUE, alternative="greater") [2] 
-
- moran_round_evening <- moran_evening %>% mutate(across(2:3, round, 3)) 
-
-``` 
-
-Combine Duncan and Moran files for in Evening cells 
-
-```{r, eval=F}
-Duncan_moran_eveningCell <- left_join(duncan_evening, moran_round_evening, by = "type")
-Duncan_moran_eveningCell
-
-``` 
- 
 
