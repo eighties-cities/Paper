@@ -1,7 +1,7 @@
 ---
-title: "Companion_H24_5aDay"
+title: "Companion Notebook for An agent-based model to investigate the effects of urban segregation around the clock on inequalities in health behaviour"
 author: "Clémentine Cottineau-Mugadza, Julien Perret, Romain Reuillon, Sébastien Rey-Coyrehourcq, Julie Vallée"
-date: "2024-09-12"
+date: "2025-10-07"
 output: html_document
 ---
 
