@@ -19,6 +19,8 @@ library(reshape2)
 library(sf)
 library(spdep)
 library(tmap)
+library(cowplot)
+library(here)
 #library(OasisR) ## old package (OK for version R.2.1)
 ```
 
@@ -625,6 +627,7 @@ sim %>%
   annotate("text", x=1.405 + 0.013, y= 115, size=3, label="Value at initialisation", color="grey30") +
   xlab("Social Inequality Index") +
   ylab("Number of simulations") + 
+  xlim(1.35,1.6) +
   guides(fill=guide_legend(title="Type of scenario",nrow=2,byrow=TRUE)) +
   theme(legend.position = "bottom") 
 
@@ -658,10 +661,11 @@ ggplot(random_moves, aes(x=randomMoveRatio, y=socialInequality)) +
   geom_text(data=annotation, aes(x=x, y=y, label=label),
             colour = c("springgreen3","darkorange2"),
            size=4 , angle=0, fontface="bold") +
- ylim(1,1.6) +
+ ylim(1.35,1.6) +
   guides(fill="none") +
   xlab("Proportion of random moves") +
-  ylab("Social inequality index (EII)")
+  ylab("Social inequality index (EII)")+
+  theme_bw() 
 
 ```
 
@@ -694,6 +698,7 @@ sim %>%
   annotate("text", x=0.0957 + 0.005, y= 115, size=3, label="Value at initialisation (0.0957)", color="grey30") +
   xlab("Share of agents with a healthy diet") +
   ylab("Number of simulations") + 
+  xlim(0.07,0.15) +
   guides(fill=guide_legend(title="Type of scenario",nrow=2,byrow=TRUE)) +
   theme(legend.position = "bottom") 
 ```
@@ -925,7 +930,7 @@ guido(data_edu = data_edu, year = 2002, sample = "baro")
 guido(data_edu = data_edu, year = 2008, sample = "baro")
 ```
 
-Density distribution of rank-order inequality index per scenario
+Density distribution of rank-order inequality index per scenario (Appendix 4)
 
 ```{r}
 mean_1A <- mean(sim[sim$numOfScenario == 1,"erreygersE"])
@@ -1160,13 +1165,7 @@ Duncan_moran_eveningCell
 ```
 
 
-## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 9)
-
-```{r, echo=TRUE}
-library(cowplot)
-library(tidyverse)
-library(here)
-```
+## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 8)
 
 
 
@@ -1232,11 +1231,12 @@ ggplot(plot_table,
   scale_colour_manual(values = c("mediumorchid4", "darkorange2")) +
  scale_fill_manual(values = c("mediumorchid4","darkorange2")) +
   xlab("time") +
-  ylab("Social inequality index (EII)") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
-   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0))) +
+  ylab("Social inequality index (EII)")  +
   theme(legend.position = "bottom") +
-  ylim(1,1.6) 
+  ylim(1.35,1.6) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
+   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0)))
    
 ggplot(plot_table, 
        aes(x = time, y = prop_healthy,
@@ -1246,11 +1246,12 @@ ggplot(plot_table,
   scale_colour_manual(values = c("mediumorchid4", "darkorange2")) +
  scale_fill_manual(values = c("mediumorchid4","darkorange2")) +
   xlab("time") +
-  ylab("Proportion of healthy agents") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
-   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0))) +
+  ylab("Proportion of healthy agents")  +
     theme(legend.position = "bottom") +
-  ylim(0,0.15) 
+  ylim(0.07,0.15) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
+   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0)))
   
 ```
 
