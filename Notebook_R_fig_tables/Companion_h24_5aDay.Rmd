@@ -630,12 +630,44 @@ sim %>%
 ```
 
 
-Overall proportions of agents with healthy behaviour for the 5 scenarios (section 4.2)
+## Sensitivity and robusness (figure 6)
 
-!! TO DO JULIE (Table 5)
+```{r}
+
+random_moves <- read.csv("data/random_moves.csv")
+head(random_moves)
+
+annotation <- data.frame(
+   x = c(0,1),
+   y = c(1.57,1.46),
+   label = c("Scenario 2C", "Scenario 2B")
+)
 
 
-### Spatial distribution of agents with healthy behaviour for the 5 scenarios - in the night cells (section 4.3)
+ggplot(random_moves, aes(x=randomMoveRatio, y=socialInequality)) +
+    geom_hline(yintercept = 1.424, color = "darkorange2") +
+  geom_hline(yintercept = 1.536, color = "springgreen3") +
+  geom_violin(aes(group=randomMoveRatio, fill=randomMoveRatio)) +
+  geom_point(size=0.05) +
+  scale_fill_gradient(
+    low = "springgreen3", 
+    high = "darkorange2"
+    ) + 
+  geom_text(data=annotation, aes(x=x, y=y, label=label),
+            colour = c("springgreen3","darkorange2"),
+           size=4 , angle=0, fontface="bold") +
+ ylim(1,1.6) +
+  guides(fill="none") +
+  xlab("Proportion of random moves") +
+  ylab("Social inequality index (EII)")
+
+```
+
+### Overall proportions of agents with healthy behaviour for the 5 scenarios (section 4.2)
+
+###!! TO DO JULIE (Table 5)
+
+## Spatial distribution of agents with healthy behaviour for the 5 scenarios - in the night cells (section 4.3)
 
 ```{r}
 
@@ -660,7 +692,7 @@ bks <- c(0, 0.1, 0.125, 0.15, 0.175, Inf)
 
 ```
 
-#### Maps (figure 6)
+#### Maps (figure 7)
 
  Initial Random
 ```{r}
@@ -721,7 +753,7 @@ tm_shape(s2C) + tm_fill(col="X.propHealthy", style="fixed",
 ```
 
 
-#### Duncan Dissimilarity Index (figure 6)  
+#### Duncan Dissimilarity Index (figure 7)  
 ```{r, eval=F}
 duncan <- data.frame(matrix(ncol = 2, nrow=7))
 colnames(duncan) <- c("type", "Duncan" )
@@ -762,7 +794,7 @@ duncan_round
 ```
 
 
-####  Moran's index of spatial autocorrelation (figure 6)
+####  Moran's index of spatial autocorrelation (figure 7)
 
 ```{r}
 moran <- data.frame(matrix(ncol = 3, nrow=7))
@@ -816,8 +848,6 @@ moran_round <- moran %>% mutate(across(2:3, round, 3))
 moran_round 
 
 ```
-
-
 
 
 ## Alternative measure of social inequality in health behaviour (Appendix 4)
@@ -1100,7 +1130,6 @@ Duncan_moran_eveningCell
 
 ## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 9)
 
-
 ```{r, echo=TRUE}
 library(cowplot)
 library(tidyverse)
@@ -1108,8 +1137,9 @@ library(here)
 ```
 
 
+
 ```{r, echo=TRUE}
-phase <- read.csv("/Users/ccottineau/GitHub/Paper/Notebook_R_fig_tables/data/phase_48.csv")
+phase <- read.csv("data/phase_48.csv")
 
 long_table <- data.frame()
 i <- 0
@@ -1158,19 +1188,39 @@ plot_table <- long_table |>
          EII = as.numeric(socialInequality),
          scenario = as.factor(ifelse(scenario == 2, "1B", 
                                      ifelse(scenario == 5, "2C", NA))
-         )
-  )
+         ),
+         group = paste0(time, scenario)
+  ) 
+
 ggplot(plot_table, 
-       aes(x = time, y = EII, group = scenario,
-           colour = scenario)) +
-  geom_point()
-  
+       aes(x = time, y = EII,
+           colour = scenario, fill = scenario)) +
+  geom_violin(aes(group=group), alpha = 0.6) +
+ # geom_point() +
+  scale_colour_manual(values = c("mediumorchid4", "darkorange2")) +
+ scale_fill_manual(values = c("mediumorchid4","darkorange2")) +
+  xlab("time") +
+  ylab("Social inequality index (EII)") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
+   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0))) +
+  theme(legend.position = "bottom") +
+  ylim(1,1.6) 
+   
+ggplot(plot_table, 
+       aes(x = time, y = prop_healthy,
+           colour = scenario, fill = scenario)) +
+  geom_violin(aes(group=group), alpha = 0.6) +
+ # geom_point() +
+  scale_colour_manual(values = c("mediumorchid4", "darkorange2")) +
+ scale_fill_manual(values = c("mediumorchid4","darkorange2")) +
+  xlab("time") +
+  ylab("Proportion of healthy agents") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.9, hjust=1.0)) +
+   theme(axis.text.x.bottom = element_text(margin=margin(t=0, r=0,b=10,l=0))) +
+    theme(legend.position = "bottom") +
+  ylim(0,0.15) 
   
 ```
-
-
-
-
 
 ```{r, echo=TRUE}
  specialRead <- function(x) {
