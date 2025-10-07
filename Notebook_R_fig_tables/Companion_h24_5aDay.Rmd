@@ -761,43 +761,8 @@ duncan_round <- duncan %>% mutate(across(starts_with("Duncan"), round, 3))
 duncan_round
 ```
 
-#### Sensitivity and robusness (figure 6)
 
-```{r}
-
-random_moves <- read.csv("data/random_moves.csv")
-head(random_moves)
-
-annotation <- data.frame(
-   x = c(0,1),
-   y = c(1.57,1.46),
-   label = c("Scenario 2C", "Scenario 2B")
-)
-
-
-ggplot(random_moves, aes(x=randomMoveRatio, y=socialInequality)) +
-    geom_hline(yintercept = 1.424, color = "darkorange2") +
-  geom_hline(yintercept = 1.536, color = "springgreen3") +
-  geom_violin(aes(group=randomMoveRatio, fill=randomMoveRatio)) +
-  geom_point(size=0.05) +
-  scale_fill_gradient(
-    low = "springgreen3", 
-    high = "darkorange2"
-    ) + 
-  geom_text(data=annotation, aes(x=x, y=y, label=label),
-            colour = c("springgreen3","darkorange2"),
-           size=4 , angle=0, fontface="bold") +
- ylim(1,1.6) +
-  guides(fill="none") +
-  xlab("Proportion of random moves") +
-  ylab("Social inequality index (EII)")
-
-
-
-  
-```
-
-####  Moran's index of spatial autocorrelation (figure 7)
+####  Moran's index of spatial autocorrelation (figure 6)
 
 ```{r}
 moran <- data.frame(matrix(ncol = 3, nrow=7))
@@ -851,6 +816,8 @@ moran_round <- moran %>% mutate(across(2:3, round, 3))
 moran_round 
 
 ```
+
+
 
 
 ## Alternative measure of social inequality in health behaviour (Appendix 4)
@@ -1133,11 +1100,77 @@ Duncan_moran_eveningCell
 
 ## Evolution over the six series of three time slices in simulated values - 5aDay model (Appendix 9)
 
+
 ```{r, echo=TRUE}
 library(cowplot)
 library(tidyverse)
 library(here)
 ```
+
+
+```{r, echo=TRUE}
+phase <- read.csv("/Users/ccottineau/GitHub/Paper/Notebook_R_fig_tables/data/phase_48.csv")
+
+long_table <- data.frame()
+i <- 0
+j <- 1
+time <- data.frame(
+  day = rep("day",18),
+  nd = sort(rep(0:5,3)),
+  step = rep("step",18),
+  ns = rep(0:2,6)) |>
+  mutate(time = paste0(day, nd, "_", step, ns)) |>
+  select(time)
+
+for(i in 1:nrow(phase)){
+  nsenario <- phase[i, "numOfScenario"]
+  EII <- t(
+    str_split(
+      str_replace(
+        str_replace( phase[i, "socialInequality"] , c("\\["), ""), 
+        c("\\["), ""
+      ),
+      ",", simplify = T
+    )
+  )[1:18,]
+  healthy <- t(
+    str_split(
+      str_replace(
+        str_replace( phase[i, "numberOfHealthy"] , c("\\["), ""), 
+        c("\\["), ""
+      ),
+      ",", simplify = T
+    )
+  )[1:18,]
+  
+  
+  long_table[j:(j+17),"time"] <- time
+  long_table[j:(j+17),"scenario"] <- rep(nsenario, 18)
+  long_table[j:(j+17),"socialInequality"] <- EII
+  long_table[j:(j+17),"numberOfHealthy"] <- healthy
+  
+  j <- j+18
+  
+}
+
+plot_table <- long_table |>
+  mutate(prop_healthy = as.numeric(numberOfHealthy) / 8768898,
+         EII = as.numeric(socialInequality),
+         scenario = as.factor(ifelse(scenario == 2, "1B", 
+                                     ifelse(scenario == 5, "2C", NA))
+         )
+  )
+ggplot(plot_table, 
+       aes(x = time, y = EII, group = scenario,
+           colour = scenario)) +
+  geom_point()
+  
+  
+```
+
+
+
+
 
 ```{r, echo=TRUE}
  specialRead <- function(x) {
